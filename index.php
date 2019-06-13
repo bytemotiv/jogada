@@ -22,11 +22,6 @@ $intHash = bc_hexdec($hash);
 echo (int)$intHash;
 */
 
-$params = explode("/", $_SERVER["REQUEST_URI"]);
-@$gameType = $params[2] ?: "_";
-@$gameId = $params[3] ?: uniqid();
-@$action = $params[4] ?: "summary";
-
 function error($statuscode=400, $errormessage) {
     http_response_code(400);
     header("Content-Type: application/json");
@@ -34,7 +29,13 @@ function error($statuscode=400, $errormessage) {
         "error" => $errormessage
     );
     echo json_encode($error);
+    die();
 }
+
+$params = explode("/", $_SERVER["REQUEST_URI"]);
+@$gameType = $params[2] ?: "_";
+@$gameId = $params[3] ?: uniqid();
+@$action = $params[4] ?: "summary";
 
 if ($_SERVER["REQUEST_METHOD"] === "GET") {
     switch ($action) {
@@ -47,9 +48,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
                 header("Last-Modified: ".$game->lastModifiedHeader());
                 echo json_encode($summary);
             } else {
-                error(400, "Error loading game");
-                echo "Error loading Game #".$gameId."<br>";
-                http_response_code(400);
+                error(400, "Error loading game #".$gameId);
             }
             break;
         case "turns":
@@ -60,6 +59,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
             echo json_encode($turns);
             break;
         default:
+            // for development purposes, to be removed later
             var_dump($params);
             break;
     }
@@ -86,7 +86,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             if (json_last_error() === 0) {
                 $game->addPlayer($player);
             } else {
-                echo "Invalid JSON: ".$body;
+                error(400, "Invalid JSON: ".$body);
             }
             break;
 
@@ -96,7 +96,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             if (json_last_error() === 0) {
                 $game->addTurn($turn);
             } else {
-                echo "Invalid JSON: ".$body;
+                error(400, "Invalid JSON: ".$body);
             }
             break;
         }

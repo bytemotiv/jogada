@@ -22,7 +22,6 @@ class Game {
             $this->seed = $gameSeed;
             $this->turns = array();
             $this->parser = new EmptyGame();
-            http_response_code(200);
             return;
         }
 
@@ -43,13 +42,11 @@ class Game {
                 $this->parser->parseTurns($this, $this->turns);
                 http_response_code(200);
             } else {
-                echo "No parser for ".$data->game." found<br>";
-                http_response_code(400);
+                error(400, "No parser for $data->game found");
                 return false;
             }
         } else {
-            echo "Error loading Game #".$gameId;
-            http_response_code(400);
+            error(400, "Error loading Game #$gameId");
             return false;
         }
     }
@@ -102,8 +99,7 @@ class Game {
         // check if the winning condition hasn't been met yet
         $gameWon = $this->parser->winningConditionFulfilled($this);
         if ($gameWon) {
-            echo "Game already over.";
-            http_response_code(400);
+            error(400, "Game already over");
             return;
         }
 
@@ -114,22 +110,17 @@ class Game {
                 if ($turn) {
                     $this->turns[] = $turn;
                     $this->update();
-                    echo "Turn added";
-                    http_response_code(200);
                     return;
                 } else {
-                    echo "Invalid turn.";
-                    http_response_code(400);
+                    error(400, "Invalid Turn");
                     return;
                 }
             } else {
-                echo "Invalid player.";
-                http_response_code(400);
+                error(400, "Invalid Player");
                 return;
             }
         } else {
-            echo "Invalid turn.";
-            http_response_code(400);
+            error(400, "Invalid Turn");
             return;
         }
     }
@@ -153,9 +144,8 @@ class Game {
 
     function summary() {
         if (!$this->loaded) {
-            return array(
-                "error" => "Game not loaded"
-            );
+            error(400, "Game not loaded");
+            return;
         }
 
         $summary = array(
